@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta
+      name="description"
+      content="A fast, private toolbox for developers: JWT decode/generate, Base64, URL encode, hashing, UUIDs, regex testing, HTTP headers, and JSON formatting."
+    >
+    <title>DevKit - Developer Utilities</title>
+    <link rel="icon" href="public/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="public/apple-icon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-icon" data-icon="terminal"></div>
+          <div>
+            <p class="brand-title">DevKit</p>
+            <p class="brand-subtitle">Developer utilities</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="client-pill">100% client-side</span>
+          <button class="button outline icon-only mobile-toggle" type="button" aria-label="Toggle navigation" data-mobile-toggle>
+            <span data-icon="menu"></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="sidebar">
+          <nav class="nav" data-nav></nav>
+        </aside>
+        <div class="mobile-nav" data-mobile-nav hidden></div>
+        <main class="main">
+          <section class="tool-panel" data-tool-panel></section>
+        </main>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
