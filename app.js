@@ -1027,8 +1027,11 @@ function renderHome() {
         <div class="search">
           <span class="search-icon">${icon("search")}</span>
           <input id="tool-search" class="search-input" type="text" spellcheck="false"
-            placeholder="Search tools…  (press /)" autocomplete="off">
+            placeholder="Search tools…  (press /)" autocomplete="off"
+            role="combobox" aria-expanded="false" aria-autocomplete="list"
+            aria-controls="search-suggest">
           <kbd class="search-kbd">/</kbd>
+          <ul id="search-suggest" class="search-suggest" role="listbox" data-suggest hidden></ul>
         </div>
       </header>
       <div class="home-sections">${sections}</div>
@@ -1040,6 +1043,85 @@ function renderHome() {
   const empty = panel.querySelector("[data-empty]");
   const cards = Array.from(panel.querySelectorAll(".tool-card"));
   const groupEls = Array.from(panel.querySelectorAll("[data-group]"));
+  const suggest = panel.querySelector("[data-suggest]");
+
+  // Flat list of every tool, carrying its group accent for the suggestion icons.
+  const allTools = GROUPS.flatMap((group) =>
+    group.items.map((item) => ({ ...item, accent: group.accent })));
+
+  // Rank matches so tools whose NAME starts with the query come first,
+  // then name-substring matches, then description matches.
+  function rankMatches(q) {
+    const scored = [];
+    allTools.forEach((tool) => {
+      const name = tool.name.toLowerCase();
+      const desc = (tool.desc || "").toLowerCase();
+      let score = -1;
+      if (name.startsWith(q)) score = 0;
+      else if (name.includes(q)) score = 1;
+      else if (desc.includes(q)) score = 2;
+      if (score >= 0) scored.push({ tool, score });
+    });
+    scored.sort((a, b) => a.score - b.score || a.tool.name.localeCompare(b.tool.name));
+    return scored.map((s) => s.tool);
+  }
+
+  let active = -1; // index of the highlighted suggestion
+
+  function highlight(text, q) {
+    const i = text.toLowerCase().indexOf(q);
+    if (i < 0 || !q) return escapeHtml(text);
+    return escapeHtml(text.slice(0, i)) +
+      "<mark>" + escapeHtml(text.slice(i, i + q.length)) + "</mark>" +
+      escapeHtml(text.slice(i + q.length));
+  }
+
+  function closeSuggest() {
+    active = -1;
+    suggest.hidden = true;
+    suggest.innerHTML = "";
+    search.setAttribute("aria-expanded", "false");
+    search.removeAttribute("aria-activedescendant");
+  }
+
+  function renderSuggest(q) {
+    if (!q) { closeSuggest(); return; }
+    const matches = rankMatches(q).slice(0, 6);
+    if (!matches.length) { closeSuggest(); return; }
+    active = 0;
+    suggest.innerHTML = matches.map((tool, i) => `
+      <li class="search-suggest-item${i === 0 ? " is-active" : ""}" role="option"
+        id="suggest-${i}" aria-selected="${i === 0}" data-tool="${tool.id}"
+        style="--accent:${tool.accent}">
+        <span class="search-suggest-icon">${icon(tool.icon)}</span>
+        <span class="search-suggest-text">
+          <span class="search-suggest-name">${highlight(tool.name, q)}</span>
+          <span class="search-suggest-desc">${escapeHtml(tool.desc || "")}</span>
+        </span>
+      </li>
+    `).join("");
+    suggest.hidden = false;
+    search.setAttribute("aria-expanded", "true");
+    search.setAttribute("aria-activedescendant", "suggest-0");
+  }
+
+  function setActive(next) {
+    const items = Array.from(suggest.querySelectorAll(".search-suggest-item"));
+    if (!items.length) return;
+    active = (next + items.length) % items.length;
+    items.forEach((el, i) => {
+      const on = i === active;
+      el.classList.toggle("is-active", on);
+      el.setAttribute("aria-selected", String(on));
+    });
+    search.setAttribute("aria-activedescendant", `suggest-${active}`);
+    items[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function activeTool() {
+    const el = suggest.querySelectorAll(".search-suggest-item")[active];
+    return el && el.dataset.tool;
+  }
 
   function applyFilter() {
     const q = search.value.trim().toLowerCase();
@@ -1054,16 +1136,34 @@ function renderHome() {
       group.hidden = !hasVisible;
     });
     empty.hidden = anyVisible;
+    renderSuggest(q);
   }
 
   search.addEventListener("input", applyFilter);
   search.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { search.value = ""; applyFilter(); }
+    const open = !suggest.hidden;
+    if (e.key === "Escape") {
+      if (open) { closeSuggest(); }
+      else { search.value = ""; applyFilter(); }
+      return;
+    }
+    if (e.key === "ArrowDown" && open) { e.preventDefault(); setActive(active + 1); return; }
+    if (e.key === "ArrowUp" && open) { e.preventDefault(); setActive(active - 1); return; }
     if (e.key === "Enter") {
-      const first = cards.find((c) => !c.hidden);
-      if (first) goTo(first.dataset.tool);
+      e.preventDefault();
+      const id = (open && activeTool()) || cards.find((c) => !c.hidden)?.dataset.tool;
+      if (id) goTo(id);
     }
   });
+
+  // Click or tap a suggestion to open its tool.
+  suggest.addEventListener("mousedown", (e) => {
+    const item = e.target.closest(".search-suggest-item");
+    if (item) { e.preventDefault(); goTo(item.dataset.tool); }
+  });
+
+  // Dismiss the dropdown when focus leaves the search field.
+  search.addEventListener("blur", () => { setTimeout(closeSuggest, 120); });
 }
 
 function render() {
