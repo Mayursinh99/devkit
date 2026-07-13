@@ -19,15 +19,16 @@ const ICONS = {
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 13c0 5-3.5 7.5-7.7 8.9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V5a1 1 0 0 1 1-1c2 0 4.9-1.2 6.2-2.2a1.3 1.3 0 0 1 1.6 0C14.1 2.8 17 4 19 4a1 1 0 0 1 1 1z"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
   gauge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 14l4-4"/><path d="M3.3 17a10 10 0 1 1 17.4 0"/><path d="M6.3 17h11.4"/></svg>',
-  loader: '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>'
+  loader: '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>'
 };
 
 const GROUPS = [
-  { label: "Tokens", items: [{ id: "jwt-decoder", name: "JWT Decoder", icon: "key", desc: "Inspect a JWT's header, payload, and claims." }, { id: "jwt-generator", name: "JWT Generator", icon: "keySquare", desc: "Build and sign an HMAC-based JWT." }] },
-  { label: "Encoding", items: [{ id: "base64", name: "Base64", icon: "binary", desc: "Encode or decode Base64 (UTF-8 and URL-safe)." }, { id: "url", name: "URL Encode", icon: "link", desc: "Percent-encode or decode URLs and query params." }] },
-  { label: "Generate", items: [{ id: "hash", name: "Hash", icon: "hash", desc: "SHA-1/256/384/512 digests from any text." }, { id: "uuid", name: "UUID", icon: "fingerprint", desc: "Generate random version 4 UUIDs." }] },
-  { label: "Inspect", items: [{ id: "regex", name: "Regex Tester", icon: "regex", desc: "Test regex with live match highlighting." }, { id: "headers", name: "HTTP Headers", icon: "globe", desc: "View response headers for CORS-open URLs." }, { id: "json", name: "JSON Formatter", icon: "braces", desc: "Validate, beautify, or minify JSON." }] },
-  { label: "Security", items: [{ id: "cvss", name: "CVSS Calculator", icon: "gauge", desc: "CVSS v3.1 base score and vector string." }, { id: "security-headers", name: "Header Auditor", icon: "shield", desc: "Check response headers for hardening controls." }, { id: "csp", name: "CSP Analyzer", icon: "lock", desc: "Review a CSP for risky or missing directives." }, { id: "password", name: "Password Check", icon: "key", desc: "Estimate password strength locally." }] }
+  { label: "Tokens", accent: "#7c9cff", items: [{ id: "jwt-decoder", name: "JWT Decoder", icon: "key", desc: "Inspect a JWT's header, payload, and claims." }, { id: "jwt-generator", name: "JWT Generator", icon: "keySquare", desc: "Build and sign an HMAC-based JWT." }] },
+  { label: "Encoding", accent: "#3fb98f", items: [{ id: "base64", name: "Base64", icon: "binary", desc: "Encode or decode Base64 (UTF-8 and URL-safe)." }, { id: "url", name: "URL Encode", icon: "link", desc: "Percent-encode or decode URLs and query params." }] },
+  { label: "Generate", accent: "#d9a441", items: [{ id: "hash", name: "Hash", icon: "hash", desc: "SHA-1/256/384/512 digests from any text." }, { id: "uuid", name: "UUID", icon: "fingerprint", desc: "Generate random version 4 UUIDs." }] },
+  { label: "Inspect", accent: "#c07cff", items: [{ id: "regex", name: "Regex Tester", icon: "regex", desc: "Test regex with live match highlighting." }, { id: "headers", name: "HTTP Headers", icon: "globe", desc: "View response headers for CORS-open URLs." }, { id: "json", name: "JSON Formatter", icon: "braces", desc: "Validate, beautify, or minify JSON." }] },
+  { label: "Security", accent: "#ff6b6b", items: [{ id: "cvss", name: "CVSS Calculator", icon: "gauge", desc: "CVSS v3.1 base score and vector string." }, { id: "security-headers", name: "Header Auditor", icon: "shield", desc: "Check response headers for hardening controls." }, { id: "csp", name: "CSP Analyzer", icon: "lock", desc: "Review a CSP for risky or missing directives." }, { id: "password", name: "Password Check", icon: "key", desc: "Estimate password strength locally." }] }
 ];
 
 const state = {
@@ -984,36 +985,85 @@ function renderPasswordCheck() {
   update();
 }
 
+function homeTile(item, accent) {
+  return `
+    <button class="tool-card" type="button" data-tool="${item.id}" style="--accent:${accent}"
+      data-search="${escapeHtml((item.name + " " + (item.desc || "")).toLowerCase())}">
+      <span class="tool-card-icon">${icon(item.icon)}</span>
+      <span class="tool-card-body">
+        <span class="tool-card-name">${item.name}</span>
+        <span class="tool-card-desc">${escapeHtml(item.desc || "")}</span>
+      </span>
+    </button>
+  `;
+}
+
 function renderHome() {
-  const cards = GROUPS.map((group) => `
-    <section class="home-group">
-      <h2 class="home-group-label">${group.label}</h2>
+  const totalTools = GROUPS.reduce((n, g) => n + g.items.length, 0);
+  const sections = GROUPS.map((group) => `
+    <section class="home-group" data-group>
+      <div class="home-group-head">
+        <span class="home-group-dot" style="--accent:${group.accent}"></span>
+        <h2 class="home-group-label">${group.label}</h2>
+        <span class="home-group-count">${group.items.length}</span>
+      </div>
       <div class="home-grid">
-        ${group.items.map((item) => `
-          <button class="tool-card" type="button" data-tool="${item.id}">
-            <span class="tool-card-icon">${icon(item.icon)}</span>
-            <span class="tool-card-body">
-              <span class="tool-card-name">${item.name}</span>
-              <span class="tool-card-desc">${escapeHtml(item.desc || "")}</span>
-            </span>
-          </button>
-        `).join("")}
+        ${group.items.map((item) => homeTile(item, group.accent)).join("")}
       </div>
     </section>
   `).join("");
 
   panel.innerHTML = `
-    <div class="tool">
-      <div class="tool-header">
-        <div class="tool-icon">${icon("terminal")}</div>
-        <div>
-          <h1>DevKit</h1>
-          <p class="description">A fast, private, 100% client-side toolbox for developers and security testers. Pick a tool to get started.</p>
+    <div class="home">
+      <header class="hero">
+        <div class="hero-badge">${icon("terminal")}</div>
+        <h1 class="hero-title">DevKit</h1>
+        <p class="hero-tagline">A fast, private toolbox for developers and security testers.</p>
+        <div class="hero-meta">
+          <span class="hero-chip"><span class="dot-live"></span>100% client-side</span>
+          <span class="hero-chip">${totalTools} tools</span>
+          <span class="hero-chip">No data leaves your browser</span>
         </div>
-      </div>
-      ${cards}
+        <div class="search">
+          <span class="search-icon">${icon("search")}</span>
+          <input id="tool-search" class="search-input" type="text" spellcheck="false"
+            placeholder="Search tools…  (press /)" autocomplete="off">
+          <kbd class="search-kbd">/</kbd>
+        </div>
+      </header>
+      <div class="home-sections">${sections}</div>
+      <p class="home-empty" data-empty hidden>No tools match your search.</p>
     </div>
   `;
+
+  const search = panel.querySelector("#tool-search");
+  const empty = panel.querySelector("[data-empty]");
+  const cards = Array.from(panel.querySelectorAll(".tool-card"));
+  const groupEls = Array.from(panel.querySelectorAll("[data-group]"));
+
+  function applyFilter() {
+    const q = search.value.trim().toLowerCase();
+    let anyVisible = false;
+    cards.forEach((card) => {
+      const match = !q || card.dataset.search.includes(q);
+      card.hidden = !match;
+      if (match) anyVisible = true;
+    });
+    groupEls.forEach((group) => {
+      const hasVisible = group.querySelector(".tool-card:not([hidden])");
+      group.hidden = !hasVisible;
+    });
+    empty.hidden = anyVisible;
+  }
+
+  search.addEventListener("input", applyFilter);
+  search.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { search.value = ""; applyFilter(); }
+    if (e.key === "Enter") {
+      const first = cards.find((c) => !c.hidden);
+      if (first) goTo(first.dataset.tool);
+    }
+  });
 }
 
 function render() {
@@ -1037,11 +1087,30 @@ function render() {
   bindCopyButtons(panel);
 }
 
+function goTo(id) {
+  state.active = id;
+  render();
+  window.scrollTo({ top: 0 });
+}
+
 document.addEventListener("click", (event) => {
   const trigger = event.target.closest("[data-tool]");
   if (!trigger) return;
-  state.active = trigger.dataset.tool;
-  render();
+  goTo(trigger.dataset.tool);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "/" && state.active === "home") {
+    const search = document.querySelector("#tool-search");
+    if (search && document.activeElement !== search) {
+      event.preventDefault();
+      search.focus();
+    }
+  }
+  if (event.key === "Escape" && state.active !== "home") {
+    const search = document.querySelector("#tool-search");
+    if (document.activeElement !== search) goTo("home");
+  }
 });
 
 render();
