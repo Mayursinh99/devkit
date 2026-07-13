@@ -199,6 +199,10 @@ pre {
   display: none;
 }
 
+.sidebar {
+  display: none;
+}
+
 .main {
   min-width: 0;
   flex: 1;
@@ -766,17 +770,11 @@ svg {
   }
 
   .mobile-toggle {
-    display: inline-flex;
+    display: none;
   }
 
   .mobile-nav {
-    position: fixed;
-    inset: 57px 0 0;
-    z-index: 10;
-    display: block;
-    background: rgba(10, 10, 10, 0.95);
-    padding: 16px;
-    backdrop-filter: blur(8px);
+    display: none;
   }
 
   .mobile-nav[hidden] {

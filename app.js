@@ -64,17 +64,8 @@ function escapeHtml(value) {
 }
 
 function renderNav() {
-  const html = `
-    <div class="nav-group">
-      <button class="nav-button ${state.active === "home" ? "active" : ""}" type="button" data-tool="home">
-        ${icon("home")}
-        Home
-      </button>
-    </div>
-  `;
-
-  navHost.innerHTML = html;
-  mobileNavHost.innerHTML = `<nav class="nav">${html}</nav>`;
+  navHost.innerHTML = "";
+  mobileNavHost.innerHTML = "";
 }
 
 function toolHeader(iconName, title, description) {
