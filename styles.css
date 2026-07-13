@@ -667,6 +667,83 @@ mark {
   font-size: 14px;
 }
 
+.tool-topbar {
+  margin-bottom: 4px;
+}
+
+.back-button {
+  width: fit-content;
+}
+
+.home-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-group-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.tool-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--foreground);
+  padding: 16px;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.tool-card:hover {
+  border-color: var(--input);
+  background: var(--muted);
+  transform: translateY(-1px);
+}
+
+.tool-card-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.tool-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tool-card-name {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.tool-card-desc {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 svg {
   width: 16px;
   height: 16px;

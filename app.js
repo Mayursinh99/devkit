@@ -1,5 +1,7 @@
 const ICONS = {
   terminal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg>',
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>',
+  chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m15 18-6-6 6-6"/></svg>',
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>',
   x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
   key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3"/><path d="m18 5 3 3"/></svg>',
@@ -21,15 +23,15 @@ const ICONS = {
 };
 
 const GROUPS = [
-  { label: "Tokens", items: [{ id: "jwt-decoder", name: "JWT Decoder", icon: "key" }, { id: "jwt-generator", name: "JWT Generator", icon: "keySquare" }] },
-  { label: "Encoding", items: [{ id: "base64", name: "Base64", icon: "binary" }, { id: "url", name: "URL Encode", icon: "link" }] },
-  { label: "Generate", items: [{ id: "hash", name: "Hash", icon: "hash" }, { id: "uuid", name: "UUID", icon: "fingerprint" }] },
-  { label: "Inspect", items: [{ id: "regex", name: "Regex Tester", icon: "regex" }, { id: "headers", name: "HTTP Headers", icon: "globe" }, { id: "json", name: "JSON Formatter", icon: "braces" }] },
-  { label: "Security", items: [{ id: "cvss", name: "CVSS Calculator", icon: "gauge" }, { id: "security-headers", name: "Header Auditor", icon: "shield" }, { id: "csp", name: "CSP Analyzer", icon: "lock" }, { id: "password", name: "Password Check", icon: "key" }] }
+  { label: "Tokens", items: [{ id: "jwt-decoder", name: "JWT Decoder", icon: "key", desc: "Inspect a JWT's header, payload, and claims." }, { id: "jwt-generator", name: "JWT Generator", icon: "keySquare", desc: "Build and sign an HMAC-based JWT." }] },
+  { label: "Encoding", items: [{ id: "base64", name: "Base64", icon: "binary", desc: "Encode or decode Base64 (UTF-8 and URL-safe)." }, { id: "url", name: "URL Encode", icon: "link", desc: "Percent-encode or decode URLs and query params." }] },
+  { label: "Generate", items: [{ id: "hash", name: "Hash", icon: "hash", desc: "SHA-1/256/384/512 digests from any text." }, { id: "uuid", name: "UUID", icon: "fingerprint", desc: "Generate random version 4 UUIDs." }] },
+  { label: "Inspect", items: [{ id: "regex", name: "Regex Tester", icon: "regex", desc: "Test regex with live match highlighting." }, { id: "headers", name: "HTTP Headers", icon: "globe", desc: "View response headers for CORS-open URLs." }, { id: "json", name: "JSON Formatter", icon: "braces", desc: "Validate, beautify, or minify JSON." }] },
+  { label: "Security", items: [{ id: "cvss", name: "CVSS Calculator", icon: "gauge", desc: "CVSS v3.1 base score and vector string." }, { id: "security-headers", name: "Header Auditor", icon: "shield", desc: "Check response headers for hardening controls." }, { id: "csp", name: "CSP Analyzer", icon: "lock", desc: "Review a CSP for risky or missing directives." }, { id: "password", name: "Password Check", icon: "key", desc: "Estimate password strength locally." }] }
 ];
 
 const state = {
-  active: "jwt-decoder",
+  active: "home",
   mobileOpen: false,
   jwtGenerator: {
     alg: "HS256",
@@ -62,7 +64,15 @@ function escapeHtml(value) {
 }
 
 function renderNav() {
-  const html = GROUPS.map((group) => `
+  const homeButton = `
+    <div class="nav-group">
+      <button class="nav-button ${state.active === "home" ? "active" : ""}" type="button" data-tool="home">
+        ${icon("home")}
+        Home
+      </button>
+    </div>
+  `;
+  const html = homeButton + GROUPS.map((group) => `
     <div class="nav-group">
       <span class="group-label">${group.label}</span>
       ${group.items.map((item) => `
@@ -76,18 +86,13 @@ function renderNav() {
 
   navHost.innerHTML = html;
   mobileNavHost.innerHTML = `<nav class="nav">${html}</nav>`;
-
-  document.querySelectorAll("[data-tool]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.active = button.dataset.tool;
-      state.mobileOpen = false;
-      render();
-    });
-  });
 }
 
 function toolHeader(iconName, title, description) {
   return `
+    <div class="tool-topbar">
+      <button class="button outline sm back-button" type="button" data-tool="home">${icon("chevronLeft")}Back to all tools</button>
+    </div>
     <div class="tool-header">
       <div class="tool-icon">${icon(iconName)}</div>
       <div>
@@ -1007,12 +1012,45 @@ function renderPasswordCheck() {
   update();
 }
 
+function renderHome() {
+  const cards = GROUPS.map((group) => `
+    <section class="home-group">
+      <h2 class="home-group-label">${group.label}</h2>
+      <div class="home-grid">
+        ${group.items.map((item) => `
+          <button class="tool-card" type="button" data-tool="${item.id}">
+            <span class="tool-card-icon">${icon(item.icon)}</span>
+            <span class="tool-card-body">
+              <span class="tool-card-name">${item.name}</span>
+              <span class="tool-card-desc">${escapeHtml(item.desc || "")}</span>
+            </span>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `).join("");
+
+  panel.innerHTML = `
+    <div class="tool">
+      <div class="tool-header">
+        <div class="tool-icon">${icon("terminal")}</div>
+        <div>
+          <h1>DevKit</h1>
+          <p class="description">A fast, private, 100% client-side toolbox for developers and security testers. Pick a tool to get started.</p>
+        </div>
+      </div>
+      ${cards}
+    </div>
+  `;
+}
+
 function render() {
   renderNav();
   mobileNavHost.hidden = !state.mobileOpen;
   mobileToggle.innerHTML = icon(state.mobileOpen ? "x" : "menu");
 
   const views = {
+    home: renderHome,
     "jwt-decoder": renderJwtDecoder,
     "jwt-generator": renderJwtGenerator,
     base64: renderBase64,
@@ -1027,9 +1065,17 @@ function render() {
     csp: renderCspAnalyzer,
     password: renderPasswordCheck
   };
-  views[state.active]();
+  (views[state.active] || renderHome)();
   bindCopyButtons(panel);
 }
+
+document.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-tool]");
+  if (!trigger) return;
+  state.active = trigger.dataset.tool;
+  state.mobileOpen = false;
+  render();
+});
 
 mobileToggle.addEventListener("click", () => {
   state.mobileOpen = !state.mobileOpen;
