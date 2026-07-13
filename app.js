@@ -1167,31 +1167,56 @@ function renderHome() {
 }
 
 function render() {
-  const views = {
-    home: renderHome,
-    "jwt-decoder": renderJwtDecoder,
-    "jwt-generator": renderJwtGenerator,
-    base64: renderBase64,
-    url: renderUrl,
-    hash: renderHash,
-    uuid: renderUuid,
-    regex: renderRegex,
-    headers: renderHeaders,
-    json: renderJson,
-    cvss: renderCvss,
-    "security-headers": renderSecurityHeaders,
-    csp: renderCspAnalyzer,
-    password: renderPasswordCheck
-  };
-  (views[state.active] || renderHome)();
+  (VIEWS[state.active] || renderHome)();
   bindCopyButtons(panel);
 }
 
-function goTo(id) {
-  state.active = id;
+// Map of route id -> render function. Each key is also a valid URL hash.
+const VIEWS = {
+  home: renderHome,
+  "jwt-decoder": renderJwtDecoder,
+  "jwt-generator": renderJwtGenerator,
+  base64: renderBase64,
+  url: renderUrl,
+  hash: renderHash,
+  uuid: renderUuid,
+  regex: renderRegex,
+  headers: renderHeaders,
+  json: renderJson,
+  cvss: renderCvss,
+  "security-headers": renderSecurityHeaders,
+  csp: renderCspAnalyzer,
+  password: renderPasswordCheck
+};
+
+// Read the current tool id from the URL hash (e.g. "#/base64" -> "base64").
+// Unknown or empty hashes resolve to the home page.
+function routeFromHash() {
+  const id = (location.hash || "").replace(/^#\/?/, "");
+  return VIEWS[id] ? id : "home";
+}
+
+// Render whatever the URL currently points to. Called on load and on every
+// hashchange, so the browser Back/Forward buttons "just work".
+function syncRoute() {
+  state.active = routeFromHash();
   render();
   window.scrollTo({ top: 0 });
 }
+
+// Navigate to a tool by updating the URL hash. This pushes a history entry,
+// so pressing Back returns to the previous view (home from any tool).
+// The actual render happens in the hashchange handler (syncRoute).
+function goTo(id) {
+  const target = id === "home" ? "" : "#/" + id;
+  if (location.hash === target || (target === "" && !location.hash)) {
+    syncRoute(); // same route (or home->home): re-render directly
+  } else {
+    location.hash = target;
+  }
+}
+
+window.addEventListener("hashchange", syncRoute);
 
 document.addEventListener("click", (event) => {
   const trigger = event.target.closest("[data-tool]");
@@ -1213,4 +1238,5 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-render();
+// Render the view for the URL we loaded on (deep links / refresh land correctly).
+syncRoute();
