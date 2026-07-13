@@ -64,7 +64,7 @@ function escapeHtml(value) {
 }
 
 function renderNav() {
-  const homeButton = `
+  const html = `
     <div class="nav-group">
       <button class="nav-button ${state.active === "home" ? "active" : ""}" type="button" data-tool="home">
         ${icon("home")}
@@ -72,17 +72,6 @@ function renderNav() {
       </button>
     </div>
   `;
-  const html = homeButton + GROUPS.map((group) => `
-    <div class="nav-group">
-      <span class="group-label">${group.label}</span>
-      ${group.items.map((item) => `
-        <button class="nav-button ${state.active === item.id ? "active" : ""}" type="button" data-tool="${item.id}">
-          ${icon(item.icon)}
-          ${item.name}
-        </button>
-      `).join("")}
-    </div>
-  `).join("");
 
   navHost.innerHTML = html;
   mobileNavHost.innerHTML = `<nav class="nav">${html}</nav>`;
