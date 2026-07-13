@@ -43,9 +43,6 @@ const state = {
 };
 
 const panel = document.querySelector("[data-tool-panel]");
-const navHost = document.querySelector("[data-nav]");
-const mobileNavHost = document.querySelector("[data-mobile-nav]");
-const mobileToggle = document.querySelector("[data-mobile-toggle]");
 
 document.querySelectorAll("[data-icon]").forEach((node) => {
   node.innerHTML = icon(node.dataset.icon);
@@ -61,11 +58,6 @@ function escapeHtml(value) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function renderNav() {
-  navHost.innerHTML = "";
-  mobileNavHost.innerHTML = "";
 }
 
 function toolHeader(iconName, title, description) {
@@ -1025,10 +1017,6 @@ function renderHome() {
 }
 
 function render() {
-  renderNav();
-  mobileNavHost.hidden = !state.mobileOpen;
-  mobileToggle.innerHTML = icon(state.mobileOpen ? "x" : "menu");
-
   const views = {
     home: renderHome,
     "jwt-decoder": renderJwtDecoder,
@@ -1053,12 +1041,6 @@ document.addEventListener("click", (event) => {
   const trigger = event.target.closest("[data-tool]");
   if (!trigger) return;
   state.active = trigger.dataset.tool;
-  state.mobileOpen = false;
-  render();
-});
-
-mobileToggle.addEventListener("click", () => {
-  state.mobileOpen = !state.mobileOpen;
   render();
 });
 
